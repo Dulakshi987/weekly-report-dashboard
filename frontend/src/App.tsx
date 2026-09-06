@@ -9,6 +9,8 @@ import ReportHistory from "./pages/ReportHistory";
 import ReportForm from "./pages/ReportForm";
 import ReportDetail from "./pages/ReportDetail";
 import ProjectManagement from "./pages/ProjectManagement";
+import TeamMemberProfile from "./pages/TeamMemberProfile";
+import UserManagement from "./pages/UserManagement";
 
 export default function App() {
   return (
@@ -19,59 +21,14 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/my-reports"
-            element={
-              <ProtectedRoute>
-                <ReportHistory />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/reports/new"
-            element={
-              <ProtectedRoute>
-                <ReportForm />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/reports/:id/edit"
-            element={
-              <ProtectedRoute>
-                <ReportForm />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/reports/:id"
-            element={
-              <ProtectedRoute>
-                <ReportDetail />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/projects"
-            element={
-              <ProtectedRoute>
-                <ProjectManagement />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/my-reports" element={<ProtectedRoute><ReportHistory /></ProtectedRoute>} />
+          <Route path="/reports/new" element={<ProtectedRoute><ReportForm /></ProtectedRoute>} />
+          <Route path="/reports/:id/edit" element={<ProtectedRoute><ReportForm /></ProtectedRoute>} />
+          <Route path="/reports/:id" element={<ProtectedRoute><ReportDetail /></ProtectedRoute>} />
+          <Route path="/projects" element={<ProtectedRoute><ProjectManagement /></ProtectedRoute>} />
+          <Route path="/team/:id" element={<ProtectedRoute><TeamMemberProfile /></ProtectedRoute>} />
+          <Route path="/users" element={<ProtectedRoute><UserManagement /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

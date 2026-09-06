@@ -5,6 +5,8 @@ import { testConnection } from "./config/db";
 import authRoutes from "./routes/authRoutes";
 import reportRoutes from "./routes/reportRoutes";
 import projectRoutes from "./routes/projectRoutes";
+import userRoutes from "./routes/userRoutes";
+import statsRoutes from "./routes/statsRoutes";
 
 dotenv.config();
 
@@ -21,6 +23,8 @@ app.get("/api/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/projects", projectRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/stats", statsRoutes);
 
 app.listen(PORT, async () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);

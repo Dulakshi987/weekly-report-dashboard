@@ -9,6 +9,12 @@ import {
   submitReport,
   reviewReport,
 } from "../controllers/reportController";
+import {
+  addTask, updateTask, deleteTask,
+  addBlocker, deleteBlocker,
+  addAchievement, deleteAchievement,
+  upsertHours,
+} from "../controllers/reportItemsController";
 
 const router = Router();
 
@@ -27,5 +33,21 @@ router.put("/:id/review", authorize("manager"), reviewReport);
 
 // Shared route (ownership checked inside controller)
 router.get("/:id", getReportById);
+
+// Tasks
+router.post("/:reportId/tasks", addTask);
+router.put("/:reportId/tasks/:taskId", updateTask);
+router.delete("/:reportId/tasks/:taskId", deleteTask);
+
+// Blockers
+router.post("/:reportId/blockers", addBlocker);
+router.delete("/:reportId/blockers/:blockerId", deleteBlocker);
+
+// Achievements
+router.post("/:reportId/achievements", addAchievement);
+router.delete("/:reportId/achievements/:achievementId", deleteAchievement);
+
+// Hours breakdown
+router.put("/:reportId/hours", upsertHours);
 
 export default router;
