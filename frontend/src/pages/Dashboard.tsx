@@ -165,12 +165,11 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
-      <div className="page-header">
+      {/* <div className="page-header">
         <div>
           <h1 className="page-title">MANAGER DASHBOARD</h1>
-          {/* <p className="page-subtitle">Overview of team activity and report status</p> */}
         </div>
-      </div>
+      </div> */}
 
       {/* Summary Metrics */}
       <div className="metrics-row">

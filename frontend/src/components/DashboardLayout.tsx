@@ -16,6 +16,7 @@ export default function DashboardLayout({ children }: Props) {
   const isDashboardPage = location.pathname === "/dashboard" || location.pathname.startsWith("/dashboard/");
   const showTopUtilityBar = isManager && isDashboardPage;
 
+  const [menuOpen, setMenuOpen] = useState(false);
   const [showRecentWork, setShowRecentWork] = useState(false);
   const [recentItems, setRecentItems] = useState<any[]>([]);
   const [recentLoading, setRecentLoading] = useState(false);
@@ -23,6 +24,11 @@ export default function DashboardLayout({ children }: Props) {
 
   function isActive(path: string) {
     return location.pathname === path || location.pathname.startsWith(path + "/");
+  }
+
+  function go(path: string) {
+    navigate(path);
+    setMenuOpen(false);
   }
 
   async function loadRecentWork() {
@@ -44,23 +50,59 @@ export default function DashboardLayout({ children }: Props) {
   }
 
   const managerLinks = [
-    { path: "/dashboard", label: "Dashboard", icon: "📊" },
-    { path: "/projects", label: "Projects", icon: "📁" },
-    { path: "/users", label: "Team Members", icon: "👥" },
+    { path: "/dashboard", label: "Dashboard" },
+    { path: "/projects", label: "Projects" },
+    { path: "/users", label: "Team Members" },
   ];
 
   const memberLinks = [
-    { path: "/my-reports", label: "My Reports", icon: "📝" },
+    { path: "/my-reports", label: "My Reports" },
   ];
 
   const links = isManager ? managerLinks : memberLinks;
 
   return (
     <div className="app-shell">
-      <aside className="sidebar">
+      {/* Mobile top bar with toggle */}
+      <div className="mobile-topbar">
+        <div className="mobile-topbar-brand">
+          <div style={{
+            width: 30, height: 30, borderRadius: 7,
+            background: "#ffffff",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            flexShrink: 0, padding: 3, boxSizing: "border-box",
+          }}>
+            <img
+              src="/logo.jpg"
+              alt="Sisenco Digital"
+              style={{ width: "100%", height: "100%", objectFit: "contain" }}
+            />
+          </div>
+          <span style={{ fontFamily: "inherit", fontWeight: 700 }}>Sisenco Digital</span>
+        </div>
+        <button className="mobile-menu-btn" onClick={() => setMenuOpen(!menuOpen)}>
+          {menuOpen ? "✕" : "☰"}
+        </button>
+      </div>
+
+      {/* Overlay for mobile when sidebar is open */}
+      <div className={`sidebar-overlay ${menuOpen ? "open" : ""}`} onClick={() => setMenuOpen(false)}></div>
+
+      <aside className={`sidebar ${menuOpen ? "open" : ""}`}>
         <div className="sidebar-brand">
-          <span className="dot"></span>
-          Weekly Reports
+          <div style={{
+            width: 38, height: 38, borderRadius: 8,
+            background: "#ffffff",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            flexShrink: 0, padding: 4, boxSizing: "border-box",
+          }}>
+            <img
+              src="/logo.jpg"
+              alt="Sisenco Digital"
+              style={{ width: "100%", height: "100%", objectFit: "contain" }}
+            />
+          </div>
+          <span style={{ fontFamily: "inherit", fontWeight: 700 }}>Sisenco Digital</span>
         </div>
 
         <nav className="sidebar-nav">
@@ -68,9 +110,9 @@ export default function DashboardLayout({ children }: Props) {
             <button
               key={link.path}
               className={`sidebar-link ${isActive(link.path) ? "active" : ""}`}
-              onClick={() => navigate(link.path)}
+              onClick={() => go(link.path)}
             >
-              <span>{link.icon}</span> {link.label}
+              {link.label}
             </button>
           ))}
         </nav>
@@ -81,7 +123,7 @@ export default function DashboardLayout({ children }: Props) {
             {user?.role.replace("_", " ")}
           </div>
           <button className="sidebar-link" onClick={logout}>
-            <span>🚪</span> Logout
+            Logout
           </button>
         </div>
       </aside>
@@ -89,26 +131,34 @@ export default function DashboardLayout({ children }: Props) {
       <main className="main-content">
         {showTopUtilityBar && (
           <div style={styles.topUtilityBar}>
-            <button
-              onClick={openRecentWork}
-              style={styles.recentWorkBtn}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "#2563eb";
-                e.currentTarget.style.color = "#1d4ed8";
-                e.currentTarget.style.boxShadow = "0 4px 14px rgba(15, 23, 42, 0.08)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "#e2e8f0";
-                e.currentTarget.style.color = "#334155";
-                e.currentTarget.style.boxShadow = "0 1px 3px rgba(15, 23, 42, 0.06)";
-              }}
-            >
-              <span style={{ fontSize: "0.95rem" }}>🕒</span> Recent Work
-            </button>
-            <NotificationBell />
+            <h1 style={styles.utilityPageTitle}>MANAGER DASHBOARD</h1>
+            <div style={styles.utilityRightGroup}>
+              <button
+                onClick={openRecentWork}
+                style={styles.recentWorkBtn}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "#2563eb";
+                  e.currentTarget.style.color = "#1d4ed8";
+                  e.currentTarget.style.boxShadow = "0 4px 14px rgba(15, 23, 42, 0.08)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "#e2e8f0";
+                  e.currentTarget.style.color = "#334155";
+                  e.currentTarget.style.boxShadow = "0 1px 3px rgba(15, 23, 42, 0.06)";
+                }}
+              >
+                Recent Work
+              </button>
+              <NotificationBell />
+            </div>
           </div>
         )}
-        {children}
+
+        <div style={styles.pageBody}>{children}</div>
+
+        <footer style={styles.pageFooter}>
+          © 2026 Dulakshi Keshani. All rights reserved.
+        </footer>
       </main>
 
       {showRecentWork && (
@@ -163,13 +213,62 @@ export default function DashboardLayout({ children }: Props) {
 }
 
 const styles: { [key: string]: React.CSSProperties } = {
+  pageBody: {
+    minHeight: "calc(100vh - 4rem)",
+  },
+
+  pageFooter: {
+    textAlign: "center",
+    fontSize: "0.78rem",
+    color: "#94a3b8",
+    padding: "1.5rem 0 0.5rem 0",
+    marginTop: "1rem",
+    borderTop: "1px solid #e2e8f0",
+  },
+
   topUtilityBar: {
     display: "flex",
-    justifyContent: "flex-end",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "0.5rem 0 0",
+    marginBottom: "0.25rem",
+  },
+
+  utilityBrand: {
+    display: "flex",
+    alignItems: "center",
+    gap: "0.5rem",
+  },
+
+  utilityLogo: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    objectFit: "contain",
+    flexShrink: 0,
+  },
+
+  utilityBrandText: {
+    fontFamily: "inherit",
+    fontSize: "0.95rem",
+    fontWeight: 700,
+    color: "#0f172a",
+    letterSpacing: "-0.01em",
+  },
+
+  utilityPageTitle: {
+    fontFamily: "inherit",
+    fontSize: "1.5rem",
+    fontWeight: 800,
+    color: "#0f172a",
+    letterSpacing: "-0.02em",
+    margin: 0,
+  },
+
+  utilityRightGroup: {
+    display: "flex",
     alignItems: "center",
     gap: "0.6rem",
-    padding: "0.5rem 1.5rem 0",
-    marginBottom: "0.25rem",
   },
 
   recentWorkBtn: {
