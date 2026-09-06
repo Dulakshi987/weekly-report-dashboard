@@ -5,6 +5,7 @@ import { Project } from "../types";
 import TaskTable from "../components/TaskTable";
 import ItemList from "../components/ItemList";
 import HoursBreakdown from "../components/HoursBreakdown";
+import DashboardLayout from "../components/DashboardLayout";
 
 export default function ReportForm() {
   const { id } = useParams();
@@ -122,7 +123,7 @@ export default function ReportForm() {
   const canEdit = !isEditMode || status === "draft" || status === "needs_correction";
 
   return (
-    <div style={styles.page}>
+    <DashboardLayout>
       <div style={styles.header}>
         <h1>{isEditMode ? "Edit Weekly Report" : "New Weekly Report"}</h1>
         <button onClick={() => navigate("/my-reports")} style={styles.backBtn}>
@@ -215,7 +216,7 @@ export default function ReportForm() {
           )}
         </>
       )}
-    </div>
+    </DashboardLayout>
   );
 }
 

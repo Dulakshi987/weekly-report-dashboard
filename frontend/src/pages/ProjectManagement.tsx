@@ -1,21 +1,18 @@
 import { useState, useEffect, FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { Project } from "../types";
+import DashboardLayout from "../components/DashboardLayout";
 
 export default function ProjectManagement() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Form state (used for both create and edit)
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     loadProjects();
@@ -50,12 +47,10 @@ export default function ProjectManagement() {
   async function handleSave(e: FormEvent) {
     e.preventDefault();
     setError("");
-
     if (!name.trim()) {
       setError("Project name is required");
       return;
     }
-
     setSaving(true);
     try {
       if (editingId) {
@@ -74,7 +69,6 @@ export default function ProjectManagement() {
 
   async function handleDelete(id: number) {
     if (!confirm("Are you sure you want to delete this project?")) return;
-
     try {
       await api.delete(`/projects/${id}`);
       loadProjects();
@@ -84,48 +78,66 @@ export default function ProjectManagement() {
   }
 
   return (
-    <div style={styles.page}>
-      <div style={styles.header}>
+    <DashboardLayout>
+      <div className="page-header">
         <div>
-          <h1>Projects / Categories</h1>
-          <p style={styles.subtitle}>Manage work categories used across weekly reports</p>
+          <h1 className="page-title">PROJECTS / CATEGORIES</h1>
         </div>
-        <div style={styles.headerActions}>
-          <button onClick={() => navigate("/dashboard")} style={styles.backBtn}>
-            ← Back to Dashboard
-          </button>
-          <button onClick={openCreateForm} style={styles.addBtn}>
-            + Add Project
-          </button>
-        </div>
+        <button onClick={openCreateForm} className="btn btn-primary">
+          + Add Project
+        </button>
       </div>
 
-      {error && <div style={styles.error}>{error}</div>}
+      {error && <div className="alert alert-error">{error}</div>}
 
       {showForm && (
-        <form onSubmit={handleSave} style={styles.form}>
-          <h3>{editingId ? "Edit Project" : "New Project"}</h3>
-          <label style={styles.label}>Name</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            style={styles.input}
-            placeholder="e.g. Client A"
-          />
-          <label style={styles.label}>Description (optional)</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            style={styles.textarea}
-            rows={2}
-            placeholder="Brief description of this project or category"
-          />
-          <div style={styles.formActions}>
-            <button type="submit" disabled={saving} style={styles.saveBtn}>
+        <form onSubmit={handleSave} className="form-card">
+          <div className="form-card-header">
+            <h3 className="form-card-title">{editingId ? "Edit Project" : "New Project"}</h3>
+            <p className="form-card-subtitle">
+              {editingId
+                ? "Update the details for this project or category."
+                : "Add a new project or category for reports to be tagged with."}
+            </p>
+          </div>
+
+          <div className="form-grid">
+            <div className="form-field form-grid-full">
+              <label className="form-field-label">Name</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Client A"
+              />
+            </div>
+
+            <div className="form-field form-grid-full">
+              <label className="form-field-label">Description (optional)</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+                placeholder="Brief description of this project or category"
+                style={{
+                  padding: "0.65rem 0.9rem",
+                  borderRadius: "6px",
+                  border: "1.5px solid #e2e8f0",
+                  fontSize: "0.9rem",
+                  fontFamily: "inherit",
+                  color: "#334155",
+                  background: "#f8fafc",
+                  resize: "vertical",
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="form-card-actions">
+            <button type="submit" disabled={saving} className="btn btn-primary btn-lg">
               {saving ? "Saving..." : editingId ? "Update" : "Create"}
             </button>
-            <button type="button" onClick={() => setShowForm(false)} style={styles.cancelBtn}>
+            <button type="button" onClick={() => setShowForm(false)} className="btn btn-secondary btn-lg">
               Cancel
             </button>
           </div>
@@ -133,63 +145,84 @@ export default function ProjectManagement() {
       )}
 
       {loading ? (
-        <p>Loading...</p>
+        <p className="text-muted">Loading...</p>
       ) : projects.length === 0 ? (
-        <div style={styles.emptyState}>
-          <p>No projects yet. Add your first one.</p>
-        </div>
+        <div className="empty-state">No projects yet. Add your first one.</div>
       ) : (
-        <table style={styles.table}>
+        <table className="data-table">
           <thead>
             <tr>
-              <th style={styles.th}>Name</th>
-              <th style={styles.th}>Description</th>
-              <th style={styles.th}>Actions</th>
+              <th>Name</th>
+              <th>Description</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {projects.map((p) => (
               <tr key={p.id}>
-                <td style={styles.td}><strong>{p.name}</strong></td>
-                <td style={styles.td}>{p.description || <span style={styles.muted}>—</span>}</td>
-                <td style={styles.td}>
-                  <button onClick={() => openEditForm(p)} style={styles.editLink}>
-                    Edit
-                  </button>
-                  {" | "}
-                  <button onClick={() => handleDelete(p.id)} style={styles.deleteLink}>
-                    Delete
-                  </button>
+                <td><strong>{p.name}</strong></td>
+                <td>{p.description || <span className="text-muted">—</span>}</td>
+                <td>
+                  <div style={styles.actionsCell}>
+                    <button
+                      onClick={() => openEditForm(p)}
+                      style={styles.editBtn}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "#dbeafe")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "#eff6ff")}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(p.id)}
+                      style={styles.deleteBtn}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "#fee2e2")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "#fef2f2")}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       )}
-    </div>
+    </DashboardLayout>
   );
 }
 
 const styles: { [key: string]: React.CSSProperties } = {
-  page: { maxWidth: "800px", margin: "0 auto", padding: "2rem" },
-  header: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem" },
-  headerActions: { display: "flex", gap: "0.5rem" },
-  subtitle: { color: "#666", margin: 0 },
-  backBtn: { background: "none", border: "1px solid #d1d5db", color: "#374151", padding: "0.5rem 1rem", borderRadius: "4px", cursor: "pointer" },
-  addBtn: { padding: "0.5rem 1rem", background: "#2563eb", color: "#fff", border: "none", borderRadius: "4px", cursor: "pointer" },
-  form: { background: "#fff", padding: "1.5rem", borderRadius: "8px", boxShadow: "0 2px 8px rgba(0,0,0,0.08)", marginBottom: "1.5rem" },
-  label: { display: "block", marginTop: "0.75rem", marginBottom: "0.25rem", fontSize: "0.9rem", fontWeight: 500 },
-  input: { width: "100%", padding: "0.5rem", borderRadius: "4px", border: "1px solid #ccc", boxSizing: "border-box" },
-  textarea: { width: "100%", padding: "0.5rem", borderRadius: "4px", border: "1px solid #ccc", boxSizing: "border-box", fontFamily: "inherit" },
-  formActions: { display: "flex", gap: "0.75rem", marginTop: "1rem" },
-  saveBtn: { padding: "0.5rem 1.2rem", background: "#2563eb", color: "#fff", border: "none", borderRadius: "4px", cursor: "pointer" },
-  cancelBtn: { padding: "0.5rem 1.2rem", background: "#f3f4f6", color: "#374151", border: "1px solid #d1d5db", borderRadius: "4px", cursor: "pointer" },
-  table: { width: "100%", borderCollapse: "collapse", background: "#fff", borderRadius: "8px", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.08)" },
-  th: { textAlign: "left", padding: "0.75rem", background: "#f9fafb", borderBottom: "2px solid #e5e7eb", fontSize: "0.85rem" },
-  td: { padding: "0.75rem", borderBottom: "1px solid #f0f0f0", fontSize: "0.9rem" },
-  muted: { color: "#999" },
-  editLink: { background: "none", border: "none", color: "#2563eb", cursor: "pointer", padding: 0, fontSize: "0.85rem" },
-  deleteLink: { background: "none", border: "none", color: "#dc2626", cursor: "pointer", padding: 0, fontSize: "0.85rem" },
-  error: { background: "#fee2e2", color: "#b91c1c", padding: "0.6rem", borderRadius: "4px", marginBottom: "1rem" },
-  emptyState: { textAlign: "center", padding: "3rem", background: "#fff", borderRadius: "8px" },
+  actionsCell: {
+    display: "flex",
+    alignItems: "center",
+    gap: "0.5rem",
+  },
+  editBtn: {
+    display: "inline-flex",
+    alignItems: "center",
+    background: "#eff6ff",
+    color: "#1d4ed8",
+    border: "none",
+    padding: "0.35rem 0.85rem",
+    borderRadius: "999px",
+    fontFamily: "inherit",
+    fontSize: "0.82rem",
+    fontWeight: 600,
+    cursor: "pointer",
+    transition: "background 0.15s ease",
+  },
+  deleteBtn: {
+    display: "inline-flex",
+    alignItems: "center",
+    background: "#fef2f2",
+    color: "#dc2626",
+    border: "none",
+    padding: "0.35rem 0.85rem",
+    borderRadius: "999px",
+    fontFamily: "inherit",
+    fontSize: "0.82rem",
+    fontWeight: 600,
+    cursor: "pointer",
+    transition: "background 0.15s ease",
+  },
 };

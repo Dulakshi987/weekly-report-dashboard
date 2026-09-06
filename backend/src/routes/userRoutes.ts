@@ -6,6 +6,7 @@ import {
   updateUserRole,
   deleteUser,
   getUserProfile,
+  resetUserPassword,
 } from "../controllers/userController";
 
 const router = Router();
@@ -16,6 +17,7 @@ router.use(authorize("manager")); // All user management routes are manager-only
 router.get("/", getAllUsers);
 router.post("/", inviteUser);
 router.put("/:id/role", updateUserRole);
+router.put("/:id/password", resetUserPassword);
 router.delete("/:id", deleteUser);
 router.get("/:id/profile", getUserProfile);
 

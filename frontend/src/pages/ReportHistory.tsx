@@ -3,13 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import { Report } from "../types";
-
-const statusColors: { [key: string]: { bg: string; text: string } } = {
-  draft: { bg: "#f3f4f6", text: "#374151" },
-  submitted: { bg: "#dbeafe", text: "#1e40af" },
-  needs_correction: { bg: "#fef3c7", text: "#92400e" },
-  approved: { bg: "#dcfce7", text: "#166534" },
-};
+import DashboardLayout from "../components/DashboardLayout";
 
 export default function ReportHistory() {
   const [reports, setReports] = useState<Report[]>([]);
@@ -17,7 +11,7 @@ export default function ReportHistory() {
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
     loadReports();
@@ -39,97 +33,87 @@ export default function ReportHistory() {
     return status.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
+  const draftCount = reports.filter((r) => r.status === "draft").length;
+  const submittedCount = reports.filter((r) => r.status === "submitted").length;
+  const needsCorrectionCount = reports.filter((r) => r.status === "needs_correction").length;
+  const approvedCount = reports.filter((r) => r.status === "approved").length;
+
   return (
-    <div style={styles.page}>
-      <div style={styles.header}>
+    <DashboardLayout>
+      <div className="page-header">
         <div>
-          <h1>My Weekly Reports</h1>
-          <p style={styles.subtitle}>Welcome, {user?.name}</p>
+          <h1 className="page-title">My Weekly Reports</h1>
+          <p className="page-subtitle">Track and manage your weekly progress reports</p>
         </div>
-        <div style={styles.headerActions}>
-          <button onClick={() => navigate("/reports/new")} style={styles.newBtn}>
-            + New Report
-          </button>
-          <button onClick={logout} style={styles.logoutBtn}>
-            Logout
-          </button>
+        <button onClick={() => navigate("/reports/new")} className="btn btn-primary">
+          + New Report
+        </button>
+      </div>
+
+      {/* Summary Metrics */}
+      <div className="metrics-row">
+        <div className="metric-card">
+          <div className="metric-value">{draftCount}</div>
+          <div className="metric-label">Drafts</div>
+        </div>
+        <div className="metric-card">
+          <div className="metric-value">{submittedCount}</div>
+          <div className="metric-label">Awaiting Review</div>
+        </div>
+        <div className="metric-card metric-warning">
+          <div className="metric-value">{needsCorrectionCount}</div>
+          <div className="metric-label">Needs Correction</div>
+        </div>
+        <div className="metric-card metric-success">
+          <div className="metric-value">{approvedCount}</div>
+          <div className="metric-label">Approved</div>
         </div>
       </div>
 
-      {error && <div style={styles.error}>{error}</div>}
+      {error && <div className="alert alert-error">{error}</div>}
 
       {loading ? (
-        <p>Loading...</p>
+        <p className="text-muted">Loading...</p>
       ) : reports.length === 0 ? (
-        <div style={styles.emptyState}>
+        <div className="empty-state">
           <p>You haven't created any reports yet.</p>
-          <button onClick={() => navigate("/reports/new")} style={styles.newBtn}>
+          <button onClick={() => navigate("/reports/new")} className="btn btn-primary mt-1">
             Create your first report
           </button>
         </div>
       ) : (
-        <table style={styles.table}>
+        <table className="data-table">
           <thead>
             <tr>
-              <th style={styles.th}>Week</th>
-              <th style={styles.th}>Project</th>
-              <th style={styles.th}>Status</th>
-              <th style={styles.th}>Submitted</th>
-              <th style={styles.th}>Actions</th>
+              <th>Week</th>
+              <th>Project</th>
+              <th>Status</th>
+              <th>Submitted</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {reports.map((r) => {
-              const color = statusColors[r.status] || statusColors.draft;
-              return (
-                <tr key={r.id}>
-                  <td style={styles.td}>
-                    {r.week_start?.slice(0, 10)} → {r.week_end?.slice(0, 10)}
-                  </td>
-                  <td style={styles.td}>{r.project_name || "—"}</td>
-                  <td style={styles.td}>
-                    <span style={{ ...styles.badge, background: color.bg, color: color.text }}>
-                      {formatStatus(r.status)}
-                    </span>
-                  </td>
-                  <td style={styles.td}>
-                    {r.submitted_at ? r.submitted_at.slice(0, 10) : "—"}
-                  </td>
-                  <td style={styles.td}>
-                    <Link to={`/reports/${r.id}`} style={styles.link}>
-                      View
+            {reports.map((r) => (
+              <tr key={r.id}>
+                <td>{r.week_start?.slice(0, 10)} → {r.week_end?.slice(0, 10)}</td>
+                <td>{r.project_name || "—"}</td>
+                <td><span className={`badge badge-${r.status}`}>{formatStatus(r.status)}</span></td>
+                <td>{r.submitted_at ? r.submitted_at.slice(0, 10) : "—"}</td>
+                <td>
+                  <Link to={`/reports/${r.id}`} style={{ color: "#2563eb", textDecoration: "none", fontWeight: 600, marginRight: "0.75rem" }}>
+                    View
+                  </Link>
+                  {(r.status === "draft" || r.status === "needs_correction") && (
+                    <Link to={`/reports/${r.id}/edit`} style={{ color: "#2563eb", textDecoration: "none", fontWeight: 600 }}>
+                      Edit
                     </Link>
-                    {(r.status === "draft" || r.status === "needs_correction") && (
-                      <>
-                        {" | "}
-                        <Link to={`/reports/${r.id}/edit`} style={styles.link}>
-                          Edit
-                        </Link>
-                      </>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
+                  )}
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       )}
-    </div>
+    </DashboardLayout>
   );
 }
-
-const styles: { [key: string]: React.CSSProperties } = {
-  page: { maxWidth: "900px", margin: "0 auto", padding: "2rem" },
-  header: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem" },
-  headerActions: { display: "flex", gap: "0.5rem" },
-  subtitle: { color: "#666", margin: 0 },
-  newBtn: { padding: "0.6rem 1.2rem", background: "#2563eb", color: "#fff", border: "none", borderRadius: "4px", cursor: "pointer" },
-  logoutBtn: { padding: "0.6rem 1.2rem", background: "#f3f4f6", color: "#374151", border: "1px solid #d1d5db", borderRadius: "4px", cursor: "pointer" },
-  table: { width: "100%", borderCollapse: "collapse", background: "#fff", borderRadius: "8px", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.08)" },
-  th: { textAlign: "left", padding: "0.75rem", background: "#f9fafb", borderBottom: "2px solid #e5e7eb", fontSize: "0.85rem", color: "#374151" },
-  td: { padding: "0.75rem", borderBottom: "1px solid #f0f0f0", fontSize: "0.9rem" },
-  badge: { padding: "0.25rem 0.6rem", borderRadius: "12px", fontSize: "0.8rem", fontWeight: 500 },
-  link: { color: "#2563eb", textDecoration: "none" },
-  error: { background: "#fee2e2", color: "#b91c1c", padding: "0.6rem", borderRadius: "4px", marginBottom: "1rem" },
-  emptyState: { textAlign: "center", padding: "3rem", background: "#fff", borderRadius: "8px" },
-};

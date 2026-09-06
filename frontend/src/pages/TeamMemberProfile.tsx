@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import api from "../api/axios";
+import DashboardLayout from "../components/DashboardLayout";
 
 const statusColors: { [key: string]: { bg: string; text: string } } = {
   draft: { bg: "#f3f4f6", text: "#374151" },
@@ -14,7 +15,6 @@ export default function TeamMemberProfile() {
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
     loadProfile();
@@ -32,16 +32,14 @@ export default function TeamMemberProfile() {
     }
   }
 
-  if (loading) return <div style={styles.page}>Loading...</div>;
-  if (error) return <div style={styles.page}><div style={styles.error}>{error}</div></div>;
+  if (loading) return <DashboardLayout><p className="text-muted">Loading...</p></DashboardLayout>;
+  if (error) return <DashboardLayout><div className="alert alert-error">{error}</div></DashboardLayout>;
   if (!data) return null;
 
   const { user, reports, stats } = data;
 
   return (
-    <div style={styles.page}>
-      <button onClick={() => navigate("/dashboard")} style={styles.backBtn}>← Back to Dashboard</button>
-
+    <DashboardLayout>
       <div style={styles.headerCard}>
         <h1>{user.name}</h1>
         <p style={styles.email}>{user.email}</p>
@@ -103,7 +101,7 @@ export default function TeamMemberProfile() {
           </table>
         )}
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
 

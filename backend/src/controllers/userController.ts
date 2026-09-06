@@ -96,6 +96,33 @@ export async function deleteUser(req: AuthRequest, res: Response) {
 }
 
 // ============================
+// RESET USER PASSWORD (manager only)
+// ============================
+export async function resetUserPassword(req: AuthRequest, res: Response) {
+  try {
+    const { id } = req.params;
+    const { password } = req.body;
+
+    if (!password || password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
+
+    const [existing]: any = await pool.query("SELECT id FROM users WHERE id = ?", [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    await pool.query("UPDATE users SET password_hash = ? WHERE id = ?", [passwordHash, id]);
+
+    return res.json({ message: "Password updated successfully" });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    return res.status(500).json({ message: "Server error resetting password" });
+  }
+}
+
+// ============================
 // GET USER PROFILE (manager view) - user info + report history + basic stats
 // ============================
 export async function getUserProfile(req: AuthRequest, res: Response) {
