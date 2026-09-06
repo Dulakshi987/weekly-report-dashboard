@@ -1,18 +1,11 @@
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/axios";
 import DashboardLayout from "../components/DashboardLayout";
 
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-  created_at: string;
-}
 
 export default function UserManagement() {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -23,7 +16,7 @@ export default function UserManagement() {
   const [role, setRole] = useState("team_member");
   const [saving, setSaving] = useState(false);
 
-  const [resetTarget, setResetTarget] = useState<User | null>(null);
+  const [resetTarget, setResetTarget] = useState(null);
   const [newPassword, setNewPassword] = useState("");
   const [resetSaving, setResetSaving] = useState(false);
   const [resetError, setResetError] = useState("");
@@ -37,14 +30,14 @@ export default function UserManagement() {
     try {
       const res = await api.get("/users");
       setUsers(res.data.users || []);
-    } catch (err: any) {
+    } catch (err) {
       setError(err.response?.data?.message || "Failed to load users");
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleInvite(e: FormEvent) {
+  async function handleInvite(e) {
     e.preventDefault();
     setError("");
     if (!name || !email || !password) {
@@ -57,39 +50,39 @@ export default function UserManagement() {
       setShowForm(false);
       setName(""); setEmail(""); setPassword(""); setRole("team_member");
       loadUsers();
-    } catch (err: any) {
+    } catch (err) {
       setError(err.response?.data?.message || "Failed to create user");
     } finally {
       setSaving(false);
     }
   }
 
-  async function handleRoleChange(userId: number, newRole: string) {
+  async function handleRoleChange(userId, newRole) {
     try {
       await api.put(`/users/${userId}/role`, { role: newRole });
       loadUsers();
-    } catch (err: any) {
+    } catch (err) {
       alert(err.response?.data?.message || "Failed to update role");
     }
   }
 
-  async function handleRemove(userId: number) {
+  async function handleRemove(userId) {
     if (!confirm("Delete this user? This cannot be undone.")) return;
     try {
       await api.delete(`/users/${userId}`);
       loadUsers();
-    } catch (err: any) {
+    } catch (err) {
       alert(err.response?.data?.message || "Failed to remove user");
     }
   }
 
-  function openResetPassword(u: User) {
+  function openResetPassword(u) {
     setResetTarget(u);
     setNewPassword("");
     setResetError("");
   }
 
-  async function handleResetPasswordSubmit(e: FormEvent) {
+  async function handleResetPasswordSubmit(e) {
     e.preventDefault();
     if (!resetTarget) return;
     if (!newPassword.trim() || newPassword.length < 6) {
@@ -102,7 +95,7 @@ export default function UserManagement() {
       await api.put(`/users/${resetTarget.id}/password`, { password: newPassword });
       alert(`Password updated for ${resetTarget.name}. They can log in with the new password now.`);
       setResetTarget(null);
-    } catch (err: any) {
+    } catch (err) {
       setResetError(err.response?.data?.message || "Failed to update password");
     } finally {
       setResetSaving(false);
@@ -279,7 +272,7 @@ export default function UserManagement() {
   );
 }
 
-const styles: { [key: string]: React.CSSProperties } = {
+const styles = {
   roleSelect: {
     padding: "0.4rem 0.6rem",
     fontSize: "0.88rem",

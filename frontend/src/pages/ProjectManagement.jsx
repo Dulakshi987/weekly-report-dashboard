@@ -1,15 +1,14 @@
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect } from "react";
 import api from "../api/axios";
-import { Project } from "../types";
 import DashboardLayout from "../components/DashboardLayout";
 
 export default function ProjectManagement() {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
@@ -20,10 +19,11 @@ export default function ProjectManagement() {
 
   async function loadProjects() {
     setLoading(true);
+
     try {
       const res = await api.get("/projects");
       setProjects(res.data.projects || []);
-    } catch (err: any) {
+    } catch (err) {
       setError("Failed to load projects");
     } finally {
       setLoading(false);
@@ -37,43 +37,60 @@ export default function ProjectManagement() {
     setShowForm(true);
   }
 
-  function openEditForm(p: Project) {
+  function openEditForm(p) {
     setEditingId(p.id);
     setName(p.name);
     setDescription(p.description || "");
     setShowForm(true);
   }
 
-  async function handleSave(e: FormEvent) {
+  async function handleSave(e) {
     e.preventDefault();
     setError("");
+
     if (!name.trim()) {
       setError("Project name is required");
       return;
     }
+
     setSaving(true);
+
     try {
       if (editingId) {
-        await api.put(`/projects/${editingId}`, { name, description });
+        await api.put(`/projects/${editingId}`, {
+          name,
+          description,
+        });
       } else {
-        await api.post("/projects", { name, description });
+        await api.post("/projects", {
+          name,
+          description,
+        });
       }
+
       setShowForm(false);
       loadProjects();
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to save project");
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "Failed to save project"
+      );
     } finally {
       setSaving(false);
     }
   }
 
-  async function handleDelete(id: number) {
-    if (!confirm("Are you sure you want to delete this project?")) return;
+  async function handleDelete(id) {
+    if (!confirm("Are you sure you want to delete this project?")) {
+      return;
+    }
+
     try {
       await api.delete(`/projects/${id}`);
       loadProjects();
-    } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to delete project");
+    } catch (err) {
+      alert(
+        err.response?.data?.message || "Failed to delete project"
+      );
     }
   }
 
@@ -83,17 +100,28 @@ export default function ProjectManagement() {
         <div>
           <h1 className="page-title">PROJECTS / CATEGORIES</h1>
         </div>
-        <button onClick={openCreateForm} className="btn btn-primary">
+
+        <button
+          onClick={openCreateForm}
+          className="btn btn-primary"
+        >
           + Add Project
         </button>
       </div>
 
-      {error && <div className="alert alert-error">{error}</div>}
+      {error && (
+        <div className="alert alert-error">
+          {error}
+        </div>
+      )}
 
       {showForm && (
         <form onSubmit={handleSave} className="form-card">
           <div className="form-card-header">
-            <h3 className="form-card-title">{editingId ? "Edit Project" : "New Project"}</h3>
+            <h3 className="form-card-title">
+              {editingId ? "Edit Project" : "New Project"}
+            </h3>
+
             <p className="form-card-subtitle">
               {editingId
                 ? "Update the details for this project or category."
@@ -103,7 +131,10 @@ export default function ProjectManagement() {
 
           <div className="form-grid">
             <div className="form-field form-grid-full">
-              <label className="form-field-label">Name</label>
+              <label className="form-field-label">
+                Name
+              </label>
+
               <input
                 type="text"
                 value={name}
@@ -113,7 +144,10 @@ export default function ProjectManagement() {
             </div>
 
             <div className="form-field form-grid-full">
-              <label className="form-field-label">Description (optional)</label>
+              <label className="form-field-label">
+                Description (optional)
+              </label>
+
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -134,10 +168,23 @@ export default function ProjectManagement() {
           </div>
 
           <div className="form-card-actions">
-            <button type="submit" disabled={saving} className="btn btn-primary btn-lg">
-              {saving ? "Saving..." : editingId ? "Update" : "Create"}
+            <button
+              type="submit"
+              disabled={saving}
+              className="btn btn-primary btn-lg"
+            >
+              {saving
+                ? "Saving..."
+                : editingId
+                ? "Update"
+                : "Create"}
             </button>
-            <button type="button" onClick={() => setShowForm(false)} className="btn btn-secondary btn-lg">
+
+            <button
+              type="button"
+              onClick={() => setShowForm(false)}
+              className="btn btn-secondary btn-lg"
+            >
               Cancel
             </button>
           </div>
@@ -147,7 +194,9 @@ export default function ProjectManagement() {
       {loading ? (
         <p className="text-muted">Loading...</p>
       ) : projects.length === 0 ? (
-        <div className="empty-state">No projects yet. Add your first one.</div>
+        <div className="empty-state">
+          No projects yet. Add your first one.
+        </div>
       ) : (
         <table className="data-table">
           <thead>
@@ -157,26 +206,48 @@ export default function ProjectManagement() {
               <th>Actions</th>
             </tr>
           </thead>
+
           <tbody>
             {projects.map((p) => (
               <tr key={p.id}>
-                <td><strong>{p.name}</strong></td>
-                <td>{p.description || <span className="text-muted">—</span>}</td>
+                <td>
+                  <strong>{p.name}</strong>
+                </td>
+
+                <td>
+                  {p.description || (
+                    <span className="text-muted">—</span>
+                  )}
+                </td>
+
                 <td>
                   <div style={styles.actionsCell}>
                     <button
                       onClick={() => openEditForm(p)}
                       style={styles.editBtn}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = "#dbeafe")}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = "#eff6ff")}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.background =
+                          "#dbeafe")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.background =
+                          "#eff6ff")
+                      }
                     >
                       Edit
                     </button>
+
                     <button
                       onClick={() => handleDelete(p.id)}
                       style={styles.deleteBtn}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = "#fee2e2")}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = "#fef2f2")}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.background =
+                          "#fee2e2")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.background =
+                          "#fef2f2")
+                      }
                     >
                       Delete
                     </button>
@@ -191,12 +262,13 @@ export default function ProjectManagement() {
   );
 }
 
-const styles: { [key: string]: React.CSSProperties } = {
+const styles = {
   actionsCell: {
     display: "flex",
     alignItems: "center",
     gap: "0.5rem",
   },
+
   editBtn: {
     display: "inline-flex",
     alignItems: "center",
@@ -211,6 +283,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: "pointer",
     transition: "background 0.15s ease",
   },
+
   deleteBtn: {
     display: "inline-flex",
     alignItems: "center",
