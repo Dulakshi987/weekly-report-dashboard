@@ -1,12 +1,12 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { testConnection } from "./config/db";
-import authRoutes from "./routes/authRoutes";
-import reportRoutes from "./routes/reportRoutes";
-import projectRoutes from "./routes/projectRoutes";
-import userRoutes from "./routes/userRoutes";
-import statsRoutes from "./routes/statsRoutes";
+import { testConnection } from "./config/db.js";
+import authRoutes from "./routes/authRoutes.js";
+import reportRoutes from "./routes/reportRoutes.js";
+import projectRoutes from "./routes/projectRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import statsRoutes from "./routes/statsRoutes.js";
 
 dotenv.config();
 
@@ -17,7 +17,10 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", message: "Backend server is running" });
+  res.json({
+    status: "ok",
+    message: "Backend server is running",
+  });
 });
 
 app.use("/api/auth", authRoutes);

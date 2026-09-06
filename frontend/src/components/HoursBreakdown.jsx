@@ -32,6 +32,13 @@ export default function HoursBreakdown({
   }, [initialHours]);
 
   async function handleSave() {
+    const hasNegative = Object.values(hours).some((v) => v < 0);
+
+    if (hasNegative) {
+      alert("Hours cannot be negative");
+      return;
+    }
+
     setSaving(true);
     setSaved(false);
 

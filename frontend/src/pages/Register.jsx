@@ -14,6 +14,8 @@ export default function Register() {
 
   const navigate = useNavigate();
 
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
@@ -21,6 +23,21 @@ export default function Register() {
 
     if (!name || !email || !password) {
       setError("All fields are required");
+      return;
+    }
+
+    if (name.trim().length < 2) {
+      setError("Please enter your full name");
+      return;
+    }
+
+    if (!EMAIL_REGEX.test(email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
       return;
     }
 
@@ -63,6 +80,7 @@ export default function Register() {
           onChange={(e) => setName(e.target.value)}
           style={styles.input}
           placeholder="Jane Doe"
+          required
         />
 
         <label style={styles.label}>Email</label>
@@ -73,6 +91,7 @@ export default function Register() {
           onChange={(e) => setEmail(e.target.value)}
           style={styles.input}
           placeholder="you@company.com"
+          required
         />
 
         <label style={styles.label}>Password</label>
@@ -84,6 +103,8 @@ export default function Register() {
             onChange={(e) => setPassword(e.target.value)}
             style={styles.passwordInput}
             placeholder="••••••••"
+            minLength={6}
+            required
           />
 
           <span
@@ -118,6 +139,8 @@ export default function Register() {
             )}
           </span>
         </div>
+
+        <p style={styles.hint}>Minimum 6 characters</p>
 
         <label style={styles.label}>Role</label>
 
@@ -200,6 +223,12 @@ const styles = {
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
+  },
+
+  hint: {
+    fontSize: "0.75rem",
+    color: "#888",
+    marginTop: "0.2rem",
   },
 
   button: {

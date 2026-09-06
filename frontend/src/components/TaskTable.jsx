@@ -21,9 +21,32 @@ export default function TaskTable({
   const [newTask, setNewTask] = useState({ ...emptyTask });
   const [adding, setAdding] = useState(false);
 
-  async function handleAdd() {
-    if (!newTask.task_name.trim()) {
+  function validateTask(task) {
+    if (!task.task_name.trim()) {
       alert("Task name is required");
+      return false;
+    }
+
+    if (task.planned_percent < 0 || task.planned_percent > 100) {
+      alert("Planned % must be between 0 and 100");
+      return false;
+    }
+
+    if (task.actual_percent < 0 || task.actual_percent > 100) {
+      alert("Actual % must be between 0 and 100");
+      return false;
+    }
+
+    if (task.time_planned_hours < 0 || task.time_spent_hours < 0) {
+      alert("Time values cannot be negative");
+      return false;
+    }
+
+    return true;
+  }
+
+  async function handleAdd() {
+    if (!validateTask(newTask)) {
       return;
     }
 

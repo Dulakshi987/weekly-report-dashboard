@@ -73,14 +73,32 @@ export default function ReportForm() {
     }
   }
 
+  function validateForm() {
+    if (!weekStart || !weekEnd) {
+      setError("Week start and end dates are required");
+      return false;
+    }
+
+    if (new Date(weekEnd) < new Date(weekStart)) {
+      setError("Week end date must be on or after the week start date");
+      return false;
+    }
+
+    if (!projectId) {
+      setError("Please select a project or category");
+      return false;
+    }
+
+    return true;
+  }
+
   async function handleSave(e) {
     e.preventDefault();
 
     setError("");
     setSuccess("");
 
-    if (!weekStart || !weekEnd) {
-      setError("Week start and end dates are required");
+    if (!validateForm()) {
       return;
     }
 
@@ -114,13 +132,18 @@ export default function ReportForm() {
   async function handleSubmitForReview() {
     if (!id) return;
 
+    setError("");
+
+    if (!validateForm()) {
+      return;
+    }
+
     if (tasks.length === 0) {
       if (!confirm("No tasks added yet. Submit anyway?")) {
         return;
       }
     }
 
-    setError("");
     setLoading(true);
 
     try {
@@ -206,6 +229,7 @@ export default function ReportForm() {
               }
               disabled={!canEdit}
               style={styles.input}
+              required
             />
           </div>
 
@@ -222,6 +246,8 @@ export default function ReportForm() {
               }
               disabled={!canEdit}
               style={styles.input}
+              min={weekStart || undefined}
+              required
             />
           </div>
         </div>
@@ -238,6 +264,7 @@ export default function ReportForm() {
           }
           disabled={!canEdit}
           style={styles.input}
+          required
         >
           <option value="">
             -- Select project --

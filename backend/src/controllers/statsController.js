@@ -1,21 +1,20 @@
-import { Response } from "express";
-import { pool } from "../config/db";
-import { AuthRequest } from "../middleware/authMiddleware";
+import { pool } from "../config/db.js";
 
 // ============================
 // DASHBOARD STATS (manager only)
 // ============================
-export async function getDashboardStats(req: AuthRequest, res: Response) {
+export async function getDashboardStats(req, res) {
   try {
-    // 1. Submission status by team member (for current filter set, simplified: all-time)
-    const [statusByMember]: any = await pool.query(
+    // 1. Submission status by team member
+    const [statusByMember] = await pool.query(
       `SELECT u.name AS user_name, r.status, COUNT(*) AS count
-       FROM reports r JOIN users u ON r.user_id = u.id
+       FROM reports r
+       JOIN users u ON r.user_id = u.id
        GROUP BY u.name, r.status`
     );
 
-    // 2. Workload / task distribution by project (count of tasks per project)
-    const [workloadByProject]: any = await pool.query(
+    // 2. Workload / task distribution by project
+    const [workloadByProject] = await pool.query(
       `SELECT p.name AS project_name, COUNT(t.id) AS task_count
        FROM tasks t
        JOIN reports r ON t.report_id = r.id
@@ -23,15 +22,15 @@ export async function getDashboardStats(req: AuthRequest, res: Response) {
        GROUP BY p.name`
     );
 
-    // 3. Time spent by task type, team-wide
-    const [timeByTaskType]: any = await pool.query(
+    // 3. Time spent by task type
+    const [timeByTaskType] = await pool.query(
       `SELECT task_type, SUM(hours) AS total_hours
        FROM hours_breakdown
        GROUP BY task_type`
     );
 
-    // 4. Tasks completed trend over time (by week)
-    const [tasksCompletedTrend]: any = await pool.query(
+    // 4. Tasks completed trend over time
+    const [tasksCompletedTrend] = await pool.query(
       `SELECT r.week_start, COUNT(t.id) AS completed_count
        FROM tasks t
        JOIN reports r ON t.report_id = r.id
@@ -40,16 +39,21 @@ export async function getDashboardStats(req: AuthRequest, res: Response) {
        ORDER BY r.week_start ASC`
     );
 
-    // 5. Open blockers count (blockers belonging to non-approved reports)
-    const [openBlockersRows]: any = await pool.query(
-      `SELECT COUNT(*) AS count FROM blockers b
+    // 5. Open blockers count
+    const [openBlockersRows] = await pool.query(
+      `SELECT COUNT(*) AS count
+       FROM blockers b
        JOIN reports r ON b.report_id = r.id
        WHERE r.status != 'approved'`
     );
 
-    // 6. Recent activity feed (latest review actions)
-    const [recentActivity]: any = await pool.query(
-      `SELECT rc.action, rc.created_at, u.name AS manager_name, tm.name AS team_member_name, r.id AS report_id
+    // 6. Recent activity feed
+    const [recentActivity] = await pool.query(
+      `SELECT rc.action,
+              rc.created_at,
+              u.name AS manager_name,
+              tm.name AS team_member_name,
+              r.id AS report_id
        FROM review_comments rc
        JOIN users u ON rc.manager_id = u.id
        JOIN reports r ON rc.report_id = r.id
@@ -68,6 +72,9 @@ export async function getDashboardStats(req: AuthRequest, res: Response) {
     });
   } catch (error) {
     console.error("Get dashboard stats error:", error);
-    return res.status(500).json({ message: "Server error fetching dashboard stats" });
+
+    return res.status(500).json({
+      message: "Server error fetching dashboard stats",
+    });
   }
 }

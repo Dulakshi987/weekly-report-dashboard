@@ -5,24 +5,40 @@ import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import DashboardLayout from "../components/DashboardLayout";
 
+const PAGE_SIZE = 10;
+
 export default function ReportHistory() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalReports, setTotalReports] = useState(0);
+
   const navigate = useNavigate();
   const { user } = useAuth();
 
   useEffect(() => {
-    loadReports();
-  }, []);
+    loadReports(page);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
 
-  async function loadReports() {
+  async function loadReports(pageNum) {
     setLoading(true);
 
     try {
-      const res = await api.get("/reports/my");
+      const res = await api.get("/reports/my", {
+        params: {
+          page: pageNum,
+          limit: PAGE_SIZE,
+        },
+      });
+
       setReports(res.data.reports || []);
+      setTotalPages(res.data.totalPages || 1);
+      setTotalReports(res.data.total ?? (res.data.reports || []).length);
     } catch (err) {
       setError("Failed to load reports");
     } finally {
@@ -34,6 +50,11 @@ export default function ReportHistory() {
     return status
       .replace("_", " ")
       .replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
+  function goToPage(nextPage) {
+    if (nextPage < 1 || nextPage > totalPages) return;
+    setPage(nextPage);
   }
 
   const draftCount = reports.filter(
@@ -70,7 +91,7 @@ export default function ReportHistory() {
         </button>
       </div>
 
-      {/* Summary Metrics */}
+      {/* Summary Metrics (reflect current page only) */}
       <div className="metrics-row">
         <div className="metric-card">
           <div className="metric-value">{draftCount}</div>
@@ -116,77 +137,147 @@ export default function ReportHistory() {
           </button>
         </div>
       ) : (
-        /* Reports Table */
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Week</th>
-              <th>Project</th>
-              <th>Status</th>
-              <th>Submitted</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
+        <>
+          {/* Reports Table */}
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Week</th>
+                <th>Project</th>
+                <th>Status</th>
+                <th>Submitted</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
 
-          <tbody>
-            {reports.map((r) => (
-              <tr key={r.id}>
-                <td>
-                  {r.week_start?.slice(0, 10)} →{" "}
-                  {r.week_end?.slice(0, 10)}
-                </td>
+            <tbody>
+              {reports.map((r) => (
+                <tr key={r.id}>
+                  <td>
+                    {r.week_start?.slice(0, 10)} →{" "}
+                    {r.week_end?.slice(0, 10)}
+                  </td>
 
-                <td>
-                  {r.project_name || "—"}
-                </td>
+                  <td>
+                    {r.project_name || "—"}
+                  </td>
 
-                <td>
-                  <span
-                    className={`badge badge-${r.status}`}
-                  >
-                    {formatStatus(r.status)}
-                  </span>
-                </td>
+                  <td>
+                    <span
+                      className={`badge badge-${r.status}`}
+                    >
+                      {formatStatus(r.status)}
+                    </span>
+                  </td>
 
-                <td>
-                  {r.submitted_at
-                    ? r.submitted_at.slice(0, 10)
-                    : "—"}
-                </td>
+                  <td>
+                    {r.submitted_at
+                      ? r.submitted_at.slice(0, 10)
+                      : "—"}
+                  </td>
 
-                <td>
-                  <Link
-                    to={`/reports/${r.id}`}
-                    style={{
-                      color: "#2563eb",
-                      textDecoration: "none",
-                      fontWeight: 600,
-                      marginRight: "0.75rem",
-                    }}
-                  >
-                    View
-                  </Link>
-
-                  {(r.status === "draft" ||
-                    r.status === "needs_correction") && (
+                  <td>
                     <Link
-                      to={`/reports/${r.id}/edit`}
+                      to={`/reports/${r.id}`}
                       style={{
                         color: "#2563eb",
                         textDecoration: "none",
                         fontWeight: 600,
+                        marginRight: "0.75rem",
                       }}
                     >
-                      Edit
+                      View
                     </Link>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+
+                    {(r.status === "draft" ||
+                      r.status === "needs_correction") && (
+                      <Link
+                        to={`/reports/${r.id}/edit`}
+                        style={{
+                          color: "#2563eb",
+                          textDecoration: "none",
+                          fontWeight: 600,
+                        }}
+                      >
+                        Edit
+                      </Link>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Pagination Controls */}
+          <div style={styles.pagination}>
+            <span style={styles.pageInfo}>
+              Page {page} of {totalPages} ({totalReports} total)
+            </span>
+
+            <div style={styles.pageButtons}>
+              <button
+                onClick={() => goToPage(page - 1)}
+                disabled={page <= 1}
+                style={{
+                  ...styles.pageBtn,
+                  ...(page <= 1 ? styles.pageBtnDisabled : {}),
+                }}
+              >
+                ← Previous
+              </button>
+
+              <button
+                onClick={() => goToPage(page + 1)}
+                disabled={page >= totalPages}
+                style={{
+                  ...styles.pageBtn,
+                  ...(page >= totalPages
+                    ? styles.pageBtnDisabled
+                    : {}),
+                }}
+              >
+                Next →
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </DashboardLayout>
   );
 }
 
+const styles = {
+  pagination: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: "1rem",
+    padding: "0.75rem 0",
+  },
+
+  pageInfo: {
+    fontSize: "0.85rem",
+    color: "#666",
+  },
+
+  pageButtons: {
+    display: "flex",
+    gap: "0.5rem",
+  },
+
+  pageBtn: {
+    padding: "0.4rem 0.9rem",
+    background: "#fff",
+    color: "#2563eb",
+    border: "1px solid #2563eb",
+    borderRadius: "4px",
+    cursor: "pointer",
+    fontSize: "0.85rem",
+  },
+
+  pageBtnDisabled: {
+    color: "#aaa",
+    borderColor: "#ddd",
+    cursor: "not-allowed",
+  },
+};

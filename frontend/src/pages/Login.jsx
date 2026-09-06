@@ -13,12 +13,19 @@ export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
 
     if (!email || !password) {
       setError("Please enter both email and password");
+      return;
+    }
+
+    if (!EMAIL_REGEX.test(email)) {
+      setError("Please enter a valid email address");
       return;
     }
 
@@ -62,6 +69,7 @@ export default function Login() {
           onChange={(e) => setEmail(e.target.value)}
           style={styles.input}
           placeholder="you@company.com"
+          required
         />
 
         <label style={styles.label}>Password</label>
@@ -73,6 +81,7 @@ export default function Login() {
             onChange={(e) => setPassword(e.target.value)}
             style={styles.passwordInput}
             placeholder="••••••••"
+            required
           />
 
           <span
