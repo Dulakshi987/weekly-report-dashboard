@@ -7,7 +7,6 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState("team_member");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -48,7 +47,6 @@ export default function Register() {
         name,
         email,
         password,
-        role,
       });
 
       setSuccess("Registration successful! Redirecting to login...");
@@ -141,17 +139,6 @@ export default function Register() {
         </div>
 
         <p style={styles.hint}>Minimum 6 characters</p>
-
-        <label style={styles.label}>Role</label>
-
-        <select
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-          style={styles.input}
-        >
-          <option value="team_member">Team Member</option>
-          <option value="manager">Manager</option>
-        </select>
 
         <button type="submit" disabled={loading} style={styles.button}>
           {loading ? "Registering..." : "Register"}

@@ -8,20 +8,15 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
 // ============================
 // REGISTER
 // ============================
+
 export async function register(req, res) {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password } = req.body;
 
     // Basic validation
     if (!name || !email || !password) {
       return res.status(400).json({
         message: "Name, email and password are required",
-      });
-    }
-
-    if (role && !["team_member", "manager"].includes(role)) {
-      return res.status(400).json({
-        message: "Invalid role",
       });
     }
 
@@ -40,10 +35,13 @@ export async function register(req, res) {
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Insert user
+    // Insert user — role is ALWAYS hardcoded to team_member here.
+    // Public registration must never be able to create a manager account;
+    // managers are only created via the seed script or promoted later
+    // by an existing manager through the User Management page.
     const [result] = await pool.query(
       "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)",
-      [name, email, passwordHash, role || "team_member"]
+      [name, email, passwordHash, "team_member"]
     );
 
     return res.status(201).json({
