@@ -19,6 +19,15 @@ Built as a technical assignment submission — implements role-based auth, a ful
 
 ---
 
+## Git Workflow
+
+- `main` — stable, production-ready branch
+- `dev` — active development branch
+
+All feature work was done on `dev`, then merged into `main` via Pull Requests once tested and stable, rather than pushing directly to `main`.
+
+---
+
 ## Features
 
 ### Authentication & Roles
