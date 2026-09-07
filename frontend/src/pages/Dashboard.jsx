@@ -17,6 +17,7 @@ import {
 } from "recharts";
 import api from "../api/axios";
 import DashboardLayout from "../components/DashboardLayout";
+import Pagination from "../components/Pagination";
 
 const PIE_COLORS = [
   "#2563eb",
@@ -34,6 +35,8 @@ const RANGE_OPTIONS = [
   { key: "1y", label: "1 Year" },
   { key: "custom", label: "Custom" },
 ];
+
+const PAGE_SIZE = 10;
 
 function formatDate(d) {
   return d.toISOString().slice(0, 10);
@@ -86,6 +89,9 @@ export default function Dashboard() {
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
 
+  // Table pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+
   const activeDates = useMemo(
     () => getRangeDates(chartRange, customFrom, customTo),
     [chartRange, customFrom, customTo]
@@ -108,6 +114,7 @@ export default function Dashboard() {
   }, [chartRange, customFrom, customTo]);
 
   useEffect(() => {
+    setCurrentPage(1);
     loadReports();
   }, [
     statusFilter,
@@ -252,6 +259,17 @@ export default function Dashboard() {
       week: t.week_start?.slice(5, 10),
       completed: t.completed_count,
     })) || [];
+
+  // Pagination derived values
+  const totalPages = Math.max(
+    1,
+    Math.ceil(reports.length / PAGE_SIZE)
+  );
+
+  const paginatedReports = reports.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
 
   return (
     <DashboardLayout>
@@ -702,80 +720,88 @@ export default function Dashboard() {
           No reports match the selected filters.
         </div>
       ) : (
-        <div style={styles.tableWrap}>
-          <table
-            className="data-table"
-            style={{ width: "100%" }}
-          >
-            <thead>
-              <tr>
-                <th>Team Member</th>
-                <th>Week</th>
-                <th>Project</th>
-                <th>Status</th>
-                <th>Submitted</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {reports.map((r) => (
-                <tr key={r.id}>
-                  <td>
-                    <Link
-                      to={`/team/${r.user_id}`}
-                      style={{
-                        color: "#2563eb",
-                        textDecoration: "none",
-                        fontWeight: 600,
-                      }}
-                    >
-                      {r.user_name}
-                    </Link>
-                  </td>
-
-                  <td>
-                    {r.week_start?.slice(0, 10)} →{" "}
-                    {r.week_end?.slice(0, 10)}
-                  </td>
-
-                  <td>
-                    {r.project_name || "—"}
-                  </td>
-
-                  <td>
-                    <span
-                      className={`badge badge-${r.status}`}
-                    >
-                      {formatStatus(r.status)}
-                    </span>
-                  </td>
-
-                  <td>
-                    {r.submitted_at
-                      ? r.submitted_at.slice(0, 10)
-                      : "—"}
-                  </td>
-
-                  <td>
-                    <Link
-                      to={`/reports/${r.id}`}
-                      style={{
-                        color: "#2563eb",
-                        textDecoration: "none",
-                        fontWeight: 600,
-                      }}
-                    >
-                      {r.status === "submitted"
-                        ? "Review →"
-                        : "View"}
-                    </Link>
-                  </td>
+        <>
+          <div style={styles.tableWrap}>
+            <table
+              className="data-table"
+              style={{ width: "100%" }}
+            >
+              <thead>
+                <tr>
+                  <th>Team Member</th>
+                  <th>Week</th>
+                  <th>Project</th>
+                  <th>Status</th>
+                  <th>Submitted</th>
+                  <th>Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+
+              <tbody>
+                {paginatedReports.map((r) => (
+                  <tr key={r.id}>
+                    <td>
+                      <Link
+                        to={`/team/${r.user_id}`}
+                        style={{
+                          color: "#2563eb",
+                          textDecoration: "none",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {r.user_name}
+                      </Link>
+                    </td>
+
+                    <td>
+                      {r.week_start?.slice(0, 10)} →{" "}
+                      {r.week_end?.slice(0, 10)}
+                    </td>
+
+                    <td>
+                      {r.project_name || "—"}
+                    </td>
+
+                    <td>
+                      <span
+                        className={`badge badge-${r.status}`}
+                      >
+                        {formatStatus(r.status)}
+                      </span>
+                    </td>
+
+                    <td>
+                      {r.submitted_at
+                        ? r.submitted_at.slice(0, 10)
+                        : "—"}
+                    </td>
+
+                    <td>
+                      <Link
+                        to={`/reports/${r.id}`}
+                        style={{
+                          color: "#2563eb",
+                          textDecoration: "none",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {r.status === "submitted"
+                          ? "Review →"
+                          : "View"}
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <Pagination
+            page={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </>
       )}
     </DashboardLayout>
   );

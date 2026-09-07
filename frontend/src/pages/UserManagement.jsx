@@ -1,13 +1,16 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import DashboardLayout from "../components/DashboardLayout";
+import Pagination from "../components/Pagination";
 
+const PAGE_SIZE = 8;
 
 export default function UserManagement() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [page, setPage] = useState(1);
 
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
@@ -20,6 +23,8 @@ export default function UserManagement() {
   const [newPassword, setNewPassword] = useState("");
   const [resetSaving, setResetSaving] = useState(false);
   const [resetError, setResetError] = useState("");
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadUsers();
@@ -102,6 +107,15 @@ export default function UserManagement() {
     }
   }
 
+  // Client-side pagination
+  const totalPages = Math.max(1, Math.ceil(users.length / PAGE_SIZE));
+  const pagedUsers = users.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  function handlePageChange(newPage) {
+    if (newPage < 1 || newPage > totalPages) return;
+    setPage(newPage);
+  }
+
   return (
     <DashboardLayout>
       <div className="page-header">
@@ -129,6 +143,8 @@ export default function UserManagement() {
                 placeholder="e.g. Jane Silva"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                required
+                minLength={2}
               />
             </div>
 
@@ -139,6 +155,7 @@ export default function UserManagement() {
                 placeholder="jane@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
               />
             </div>
 
@@ -149,6 +166,8 @@ export default function UserManagement() {
                 placeholder="At least 6 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
               />
             </div>
 
@@ -175,56 +194,66 @@ export default function UserManagement() {
       {loading ? (
         <p className="text-muted">Loading...</p>
       ) : (
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((u) => (
-              <tr key={u.id}>
-                <td>
-                  <Link to={`/team/${u.id}`} style={{ color: "#2563eb", textDecoration: "none", fontWeight: 600 }}>{u.name}</Link>
-                </td>
-                <td>{u.email}</td>
-                <td>
-                  <select
-                    value={u.role}
-                    onChange={(e) => handleRoleChange(u.id, e.target.value)}
-                    style={styles.roleSelect}
-                  >
-                    <option value="team_member">Team Member</option>
-                    <option value="manager">Manager</option>
-                  </select>
-                </td>
-                <td>
-                  <div style={styles.actionsCell}>
-                    <button
-                      onClick={() => openResetPassword(u)}
-                      style={styles.resetBtn}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = "#dbeafe")}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = "#eff6ff")}
-                    >
-                      Reset Password
-                    </button>
-                    <button
-                      onClick={() => handleRemove(u.id)}
-                      style={styles.deleteBtn}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = "#fee2e2")}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = "#fef2f2")}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </td>
+        <>
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {pagedUsers.map((u) => (
+                <tr key={u.id}>
+                  <td>{u.name}</td>
+                  <td>{u.email}</td>
+                  <td>
+                    <select
+                      value={u.role}
+                      onChange={(e) => handleRoleChange(u.id, e.target.value)}
+                      style={styles.roleSelect}
+                    >
+                      <option value="team_member">Team Member</option>
+                      <option value="manager">Manager</option>
+                    </select>
+                  </td>
+                  <td>
+                    <div style={styles.actionsCell}>
+                      <button
+                        onClick={() => navigate(`/team/${u.id}`)}
+                        style={styles.viewBtn}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "#e2e8f0")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "#f1f5f9")}
+                      >
+                        View
+                      </button>
+                      <button
+                        onClick={() => openResetPassword(u)}
+                        style={styles.resetBtn}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "#dbeafe")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "#eff6ff")}
+                      >
+                        Reset Password
+                      </button>
+                      <button
+                        onClick={() => handleRemove(u.id)}
+                        style={styles.deleteBtn}
+                        onMouseEnter={(e) => (e.currentTarget.style.background = "#fee2e2")}
+                        onMouseLeave={(e) => (e.currentTarget.style.background = "#fef2f2")}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <Pagination page={page} totalPages={totalPages} onPageChange={handlePageChange} />
+        </>
       )}
 
       {resetTarget && (
@@ -254,6 +283,8 @@ export default function UserManagement() {
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Enter new password"
                 autoFocus
+                required
+                minLength={6}
               />
             </div>
 
@@ -275,8 +306,8 @@ export default function UserManagement() {
 const styles = {
   roleSelect: {
     padding: "0.4rem 0.6rem",
-    fontSize: "0.88rem",
     fontFamily: "inherit",
+    fontSize: "0.88rem",
     color: "#334155",
     borderRadius: "6px",
     border: "1px solid #e2e8f0",
@@ -285,6 +316,20 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: "0.5rem",
+  },
+  viewBtn: {
+    display: "inline-flex",
+    alignItems: "center",
+    background: "#f1f5f9",
+    color: "#334155",
+    border: "none",
+    padding: "0.35rem 0.85rem",
+    borderRadius: "999px",
+    fontFamily: "inherit",
+    fontSize: "0.82rem",
+    fontWeight: 600,
+    cursor: "pointer",
+    transition: "background 0.15s ease",
   },
   resetBtn: {
     display: "inline-flex",

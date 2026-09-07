@@ -77,10 +77,8 @@ export default function ReportHistory() {
     <DashboardLayout>
       <div className="page-header">
         <div>
-          <h1 className="page-title">My Weekly Reports</h1>
-          <p className="page-subtitle">
-            Track and manage your weekly progress reports
-          </p>
+          <h1 className="page-title">MY WEEKLY REPORTS</h1>
+         
         </div>
 
         <button

@@ -174,8 +174,8 @@ export default function ReportForm() {
       <div style={styles.header}>
         <h1>
           {isEditMode
-            ? "Edit Weekly Report"
-            : "New Weekly Report"}
+            ? "EDIT WEEKLY REPORT"
+            : "NEW WEEKLY REPORT"}
         </h1>
 
         <button
@@ -414,11 +414,19 @@ const styles = {
   },
 
   backBtn: {
-    background: "none",
-    border: "none",
-    color: "#2563eb",
-    cursor: "pointer",
-  },
+  display: "inline-flex",
+  alignItems: "center",
+  gap: "0.4rem",
+  background: "#fff",
+  border: "1px solid #e2e8f0",
+  color: "#0f172a",
+  fontWeight: 600,
+  fontSize: "0.85rem",
+  padding: "0.55rem 1.1rem",
+  borderRadius: "9999px",
+  cursor: "pointer",
+  boxShadow: "0 2px 6px rgba(15, 23, 42, 0.06)",
+},
 
   form: {
     background: "#fff",

@@ -5,7 +5,7 @@ export default function MyReports() {
 
   return (
     <div style={{ padding: "2rem" }}>
-      <h1>My Weekly Reports</h1>
+      <h1>MY WEEKLY REPORTS</h1>
 
       <p>
         Welcome, {user?.name} ({user?.role})
